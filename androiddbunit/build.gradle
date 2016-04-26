@@ -1,0 +1,51 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 22
+    buildToolsVersion "23.0.3"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+android.libraryVariants.all { variant ->
+    task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+        description "Generates Javadoc for $variant.name."
+        title "Android DBUnit"
+
+        source = variant.javaCompile.source
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+
+        ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+        classpath = files(variant.javaCompile.classpath.files) + files(ext.androidJar)
+
+        options {
+            links "http://docs.oracle.com/javase/7/docs/api/", "https://www.mapbox.com/android-sdk/api/3.2.0/"
+            linksOffline "http://d.android.com/reference/", "${android.sdkDirectory}/docs/reference"
+        }
+
+        failOnError false
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'org.slf4j:slf4j-api:1.7.+'
+    compile 'org.slf4j:slf4j-android:1.7.+'
+    compile('org.dbunit:dbunit:2.5.+') {
+        exclude group: 'org.apache.poi', module: 'poi-ooxml'
+        exclude group: 'commons-collections', module: 'commons-collections'
+    }
+}

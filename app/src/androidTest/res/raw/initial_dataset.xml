@@ -1,0 +1,16 @@
+<!DOCTYPE dataset SYSTEM "dataset.dtd">
+<dataset>
+	<table name="widget">
+		<column>_id</column>
+		<column>name</column>
+
+		<row>
+			<value>1</value>
+			<value>Foo</value>
+		</row>
+		<row>
+			<value>2</value>
+			<value>Bar</value>
+		</row>
+	</table>
+</dataset>
