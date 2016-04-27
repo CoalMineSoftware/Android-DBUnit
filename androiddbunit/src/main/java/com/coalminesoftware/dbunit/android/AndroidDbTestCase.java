@@ -2,7 +2,6 @@ package com.coalminesoftware.dbunit.android;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.test.AndroidTestCase;
 import android.test.InstrumentationTestCase;
 import android.test.IsolatedContext;
 import android.test.RenamingDelegatingContext;
@@ -21,12 +20,31 @@ import java.io.File;
 
 public abstract class AndroidDbTestCase extends InstrumentationTestCase {
 	private static final String FILENAME_PREFIX = "dbunit.";
+    private static final String SQLITE_DATABASE_FILE_EXTENSION = ".sqlite";
 
     private IsolatedContext databaseContext;
     private final DelegateDbTestCase dbTestCase = new DelegateDbTestCase();
+    private String databaseFilename;
+
+    /**
+     * Creates a test case that will use a database with a name generated based on the test class's
+     * simple name.
+     *
+     * @see Class#getSimpleName()
+     */
+    public AndroidDbTestCase() {
+        databaseFilename = generateDefaultDatabaseFilename();
+    }
+
+    /**
+     * Creates a test case that will use the given filename for the test database.
+     */
+    public AndroidDbTestCase(String databaseFilename) {
+        this.databaseFilename = databaseFilename;
+    }
 
     protected IDatabaseTester newDatabaseTester() throws Exception {
-        return new AndroidSQLiteDatabaseTester(getMockContext(), getDatabaseName());
+        return new AndroidSQLiteDatabaseTester(getDatabaseContext(), getDatabaseName());
     }
 
 	/**
@@ -35,9 +53,15 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
     protected abstract IDataSet getDataSet() throws Exception;
 
     /**
-     * @return The filename to be used for the test database.
+     * @return The filename to be used for the test database. The value is set during construction.
      */
-    protected abstract String getDatabaseName();
+    protected String getDatabaseName() {
+        return databaseFilename;
+    }
+
+    private String generateDefaultDatabaseFilename() {
+        return getClass().getSimpleName() + SQLITE_DATABASE_FILE_EXTENSION;
+    }
 
     /**
      * Creates the database that will be used for testing. The table will later be populated with
@@ -105,9 +129,10 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
     }
 
     /**
-     * @return The {@link IsolatedContext} created by this class during initialization.
+     * @return The {@link IsolatedContext} created during initialization for use when interacting
+     * with the database.
      */
-    public IsolatedContext getMockContext() {
+    public IsolatedContext getDatabaseContext() {
         return databaseContext;
     }
 

@@ -12,13 +12,11 @@ import com.coalminesoftware.dbunit.android.example.test.R;
 import org.dbunit.Assertion;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
-import org.junit.Assert;
 
 public class WidgetContentProviderDatabaseTest extends AndroidDbTestCase {
-	@Override
-	protected String getDatabaseName() {
-		return "widget.sqlite"; // The DB file will be created in onCreateDatabase() if it doesn't already exist.
-	}
+//	public WidgetContentProviderDatabaseTest() {
+//		super("wadget.sqlite"); // The DB file will be created in onCreateDatabase() if it doesn't already exist.
+//	}
 
 	@Override
 	protected IDataSet getDataSet() throws Exception {
@@ -60,14 +58,14 @@ public class WidgetContentProviderDatabaseTest extends AndroidDbTestCase {
 
 	public void testUpgrade() throws Exception {
 		// Do database-y stuff with application code.
-		DatabaseHelper databaseHelper = new DatabaseHelper(getMockContext()); // It's unclear what the difference is between getContext() and getMockContext() but AndroidDBTestCase's source refers to the mock context as the database context.  And it's this context that's passed to onCreateDatabase().
+		DatabaseHelper databaseHelper = new DatabaseHelper(getDatabaseContext(), getDatabaseName()); // It's unclear what the difference is between getContext() and getDatabaseContext() but AndroidDbTestCase uses the mock context as the database context.  And it's this context that's passed to onCreateDatabase().
 		SQLiteDatabase database = databaseHelper.getWritableDatabase();
 		databaseHelper.upgradeDatabase(database);
 
 		// Now make sure it worked.
 		IDataSet actualDataSet = getConnection().createDataSet();
 
-		Assert.assertNotNull("Expected some_new_table to be created when upgrading database.",
+		assertNotNull("Expected some_new_table to be created when upgrading database.",
 				actualDataSet.getTable("some_new_table"));
 
 		// This will throw an exception if the column doesn't exist, so there's not really anything to assert.

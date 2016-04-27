@@ -8,8 +8,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final int SCHEMA_VERSION = 1;
 
 
-	public DatabaseHelper(Context context) {
-		super(context, "widget.sqlite", null, SCHEMA_VERSION);
+	public DatabaseHelper(Context context, String databaseFilename) {
+		super(context, databaseFilename, null, SCHEMA_VERSION);
 	}
 
 	@Override
