@@ -4,9 +4,9 @@ import android.content.Context;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.coalminesoftware.dbunit.android.AndroidDataSetUtils;
+import com.coalminesoftware.dbunit.android.dataset.AndroidDataSetUtils;
 import com.coalminesoftware.dbunit.android.AndroidDbTestCase;
-import com.coalminesoftware.dbunit.android.AndroidFilteredDataSet;
+import com.coalminesoftware.dbunit.android.dataset.AndroidFilteredDataSet;
 import com.coalminesoftware.dbunit.android.example.test.R;
 
 import org.dbunit.Assertion;
@@ -14,9 +14,9 @@ import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.ITable;
 
 public class WidgetContentProviderDatabaseTest extends AndroidDbTestCase {
-//	public WidgetContentProviderDatabaseTest() {
-//		super("wadget.sqlite"); // The DB file will be created in onCreateDatabase() if it doesn't already exist.
-//	}
+	public WidgetContentProviderDatabaseTest() {
+		super("widget.sqlite"); // The DB file will be created in onCreateDatabase() if it doesn't already exist.
+	}
 
 	@Override
 	protected IDataSet getDataSet() throws Exception {

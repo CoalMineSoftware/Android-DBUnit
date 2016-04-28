@@ -1,7 +1,8 @@
-package com.coalminesoftware.dbunit.android;
+package com.coalminesoftware.dbunit.android.dataset;
 
 import android.app.Instrumentation;
 import android.content.Context;
+import android.support.annotation.RawRes;
 import android.test.InstrumentationTestCase;
 
 import com.coalminesoftware.dbunit.android.closeable.CloseableTemplate;
@@ -20,6 +21,14 @@ public class AndroidDataSetUtils {
     private AndroidDataSetUtils() { }
 
     /**
+     * Creates a {@link FlatXmlDataSet} from the raw resource with the given ID. The referenced
+     * resource is expected to be located in the project-under-test's androidTest/res/raw directory.
+     */
+    public static IDataSet createFlatXmlDataSet(Instrumentation instrumentation, @RawRes int rawResourceId) throws Exception {
+        return createFlatXmlDataSet(instrumentation.getContext(), rawResourceId);
+    }
+
+    /**
      * Creates a {@link FlatXmlDataSet} from the raw resource with the given ID. When provided with
      * the {@link Context} from an {@link android.app.Instrumentation} instance, the referenced
      * resource is expected to be located in the project-under-test's androidTest/res/raw directory.
@@ -27,7 +36,7 @@ public class AndroidDataSetUtils {
      * @see InstrumentationTestCase#getInstrumentation()
      * @see Instrumentation#getContext()
      */
-    public static IDataSet getFlatXmlDataSet(final Context instrumentationContext, final int rawResourceId) throws Exception {
+    public static IDataSet createFlatXmlDataSet(final Context instrumentationContext, @RawRes final int rawResourceId) throws Exception {
         return new DataSetCloseableTemplate() {
             @Override
             protected InputStream openCloseable() throws IOException {
@@ -45,7 +54,7 @@ public class AndroidDataSetUtils {
      * Creates a {@link FlatXmlDataSet} for the file with the given name. File paths are relative to
      * the androidTest/resources directory.
      */
-    public static IDataSet getFlatXmlDataSet(final Context context, final String resourcesFilename) throws Exception {
+    public static IDataSet createFlatXmlDataSet(final Context context, final String resourcesFilename) throws Exception {
         return new DataSetCloseableTemplate() {
             @Override
             protected InputStream openCloseable() throws IOException {
@@ -60,6 +69,14 @@ public class AndroidDataSetUtils {
     }
 
     /**
+     * Creates an {@link XmlDataSet} from the raw resource with the given ID. The referenced
+     * resource is expected to be located in the project-under-test's androidTest/res/raw directory.
+     */
+    public static IDataSet createXmlDataSet(Instrumentation instrumentation, @RawRes int rawResourceId) throws Exception {
+        return createXmlDataSet(instrumentation.getContext(), rawResourceId);
+    }
+
+    /**
      * Creates an {@link XmlDataSet} from the raw resource with the given ID. When provided with the
      * {@link Context} from an {@link android.app.Instrumentation} instance, the referenced resource
      * is expected to be located in the project-under-test's androidTest/res/raw directory.
@@ -68,7 +85,7 @@ public class AndroidDataSetUtils {
      * @see Instrumentation#getContext()
      */
     public static IDataSet createXmlDataSet(final Context instrumentationContext,
-            final int rawResourceId) throws Exception {
+            @RawRes final int rawResourceId) throws Exception {
         return new DataSetCloseableTemplate() {
             @Override
             protected InputStream openCloseable() throws IOException {

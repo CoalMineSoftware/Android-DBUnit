@@ -2,11 +2,14 @@ package com.coalminesoftware.dbunit.android;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
 import android.test.InstrumentationTestCase;
 import android.test.IsolatedContext;
 import android.test.RenamingDelegatingContext;
 import android.test.mock.MockContentResolver;
 import android.test.mock.MockContext;
+
+import com.coalminesoftware.dbunit.android.dataset.AndroidFilteredDataSet;
 
 import org.dbunit.DBTestCase;
 import org.dbunit.IDatabaseTester;
@@ -19,32 +22,18 @@ import org.dbunit.operation.DatabaseOperation;
 import java.io.File;
 
 public abstract class AndroidDbTestCase extends InstrumentationTestCase {
-	private static final String FILENAME_PREFIX = "dbunit.";
-    private static final String SQLITE_DATABASE_FILE_EXTENSION = ".sqlite";
+	private static final String FILENAME_PREFIX = "dbunit_";
 
     private IsolatedContext databaseContext;
     private final DelegateDbTestCase dbTestCase = new DelegateDbTestCase();
-    private String databaseFilename;
-
-    /**
-     * Creates a test case that will use a database with a name generated based on the test class's
-     * simple name.
-     *
-     * @see Class#getSimpleName()
-     */
-    public AndroidDbTestCase() {
-        databaseFilename = generateDefaultDatabaseFilename();
-    }
+    private String databaseName;
+    private IDatabaseConnection connection;
 
     /**
      * Creates a test case that will use the given filename for the test database.
      */
-    public AndroidDbTestCase(String databaseFilename) {
-        this.databaseFilename = databaseFilename;
-    }
-
-    protected IDatabaseTester newDatabaseTester() throws Exception {
-        return new AndroidSQLiteDatabaseTester(getDatabaseContext(), getDatabaseName());
+    public AndroidDbTestCase(String databaseName) {
+        this.databaseName = databaseName;
     }
 
 	/**
@@ -56,11 +45,12 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
      * @return The filename to be used for the test database. The value is set during construction.
      */
     protected String getDatabaseName() {
-        return databaseFilename;
+        return databaseName;
     }
 
-    private String generateDefaultDatabaseFilename() {
-        return getClass().getSimpleName() + SQLITE_DATABASE_FILE_EXTENSION;
+    protected SQLiteDatabase getDatabase() {
+        String databasePath = getDatabaseContext().getDatabasePath(databaseName).getAbsolutePath();
+        return SQLiteDatabase.openDatabase(databasePath, null, 0);
     }
 
     /**
@@ -97,6 +87,23 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
         return dbTestCase.getOperationListener();
     }
 
+    /**
+     * @return A data set representing the database's state when called, built from the current
+     * database connection and filtered of metadata tables used by SQLite and Android.
+     *
+     * @see AndroidFilteredDataSet
+     */
+    protected IDataSet createFilteredConnectionDataSet() throws Exception {
+        return new AndroidFilteredDataSet(getConnection().createDataSet());
+    }
+
+    /**
+     * Replaces the database's existing data with the given data set.
+     */
+    protected void replaceDatabaseDataSet(IDataSet dataSet) throws Exception {
+        DatabaseOperation.CLEAN_INSERT.execute(getConnection(), dataSet);
+    }
+
     @Override
 	protected void setUp() throws Exception {
         super.setUp();
@@ -120,10 +127,9 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
     }
 
     public IDatabaseConnection getConnection() throws Exception {
-        IDatabaseConnection connection = dbTestCase.callGetConnection();
-
-        // SQLite.JDBC only accepts fetch size 1.  See http://dbunit.sourceforge.net/properties.html
-        connection.getConfig().setProperty("http://www.dbunit.org/properties/fetchSize", 1);
+        if(connection == null) {
+            connection = dbTestCase.callGetConnection();
+        }
 
         return connection;
     }
@@ -144,7 +150,7 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
     private class DelegateDbTestCase extends DBTestCase {
         @Override
         protected IDatabaseTester newDatabaseTester() throws Exception {
-            return AndroidDbTestCase.this.newDatabaseTester();
+            return new AndroidSQLiteDatabaseTester(getDatabaseContext(), getDatabaseName());
         }
 
         @Override
@@ -154,7 +160,11 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
 
         @Override
         public void setUpDatabaseConfig(DatabaseConfig config) {
+            // SQLite.JDBC only accepts fetch size 1.  See http://dbunit.sourceforge.net/properties.html
+            config.setProperty("http://www.dbunit.org/properties/fetchSize", 1);
+
             super.setUpDatabaseConfig(config);
+
         }
 
         @Override
@@ -187,17 +197,16 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
             return super.getOperationListener();
         }
 
-        // This public method is an unfortunate necessity, to give the enclosing class a way to call the private
-        // getConnection() method, which is final and can't be overridden with a less-restrictive access modifier like
-        // the rest of these methods.
+        // This public method is an unfortunate necessity, to give the enclosing class a way to call
+        // the private getConnection() method, which is final and can't be overridden with a less-
+        // restrictive access modifier like the rest of these methods.
         public IDatabaseConnection callGetConnection() throws Exception {
             return getConnection();
         }
     }
 
+    // TODO Verify whether this is necessary since it's being provided to a RenamingDelegatingContext.
     private class DirectoryPrefixingMockContext extends MockContext {
-        private static final String	DIRECTORY_PREFIX = "dbunit_";
-
 		@Override
         public Resources getResources() {
             return getInstrumentation().getTargetContext().getResources();
@@ -206,7 +215,7 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
         @Override
         public File getDir(String name, int mode) {
             // Name the directory differently than the one created through the regular Context
-            return getInstrumentation().getTargetContext().getDir(DIRECTORY_PREFIX + name, mode);
+            return getInstrumentation().getTargetContext().getDir(FILENAME_PREFIX + name, mode);
         }
 
         @Override

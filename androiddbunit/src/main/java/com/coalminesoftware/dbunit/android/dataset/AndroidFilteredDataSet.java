@@ -1,4 +1,4 @@
-package com.coalminesoftware.dbunit.android;
+package com.coalminesoftware.dbunit.android.dataset;
 
 import org.dbunit.database.AmbiguousTableNameException;
 import org.dbunit.dataset.FilteredDataSet;
