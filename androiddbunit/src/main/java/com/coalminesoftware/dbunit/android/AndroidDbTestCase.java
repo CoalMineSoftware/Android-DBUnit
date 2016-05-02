@@ -2,6 +2,7 @@ package com.coalminesoftware.dbunit.android;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.test.InstrumentationTestCase;
 import android.test.IsolatedContext;
@@ -58,6 +59,23 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
      * the data provided by {@link #getDataSet()}.
      */
     protected abstract void onCreateDatabase(Context context);
+
+    /**
+     * Convenience method for creating the schema in the database that will be used for testing.
+     *
+     * @param schemaRevision The schema version number to initialize the database with. This is the
+     * value a SQLiteOpenHelper uses to determine whether the database being opened needs to be
+     * upgraded via its
+     * {@link android.database.sqlite.SQLiteOpenHelper#onUpgrade(SQLiteDatabase, int, int)
+     * implementation.
+     * @param schemaCreationSql Comma-separated SQL commands to create tables, views, indexes, etc.
+     */
+    protected void createDatabase(int schemaRevision, String schemaCreationSql) {
+        DatabaseUtils.createDbFromSqlStatements(getDatabaseContext(),
+                getDatabaseName(),
+                schemaRevision,
+                schemaCreationSql);
+    }
 
 	/**
      * @see DBTestCase#getDatabaseTester()
