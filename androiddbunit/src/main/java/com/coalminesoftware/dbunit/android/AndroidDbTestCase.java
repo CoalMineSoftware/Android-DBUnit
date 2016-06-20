@@ -18,6 +18,7 @@ import org.dbunit.IOperationListener;
 import org.dbunit.database.DatabaseConfig;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
+import org.dbunit.dataset.SortedDataSet;
 import org.dbunit.operation.DatabaseOperation;
 
 import java.io.File;
@@ -106,13 +107,27 @@ public abstract class AndroidDbTestCase extends InstrumentationTestCase {
     }
 
     /**
-     * @return A data set representing the database's state when called, built from the current
-     * database connection and filtered of metadata tables used by SQLite and Android.
+     * @return A sorted data set representing the database's state when called, built from the
+     * current database connection and filtered of metadata tables used by SQLite and Android.
      *
      * @see AndroidFilteredDataSet
      */
     protected IDataSet createFilteredConnectionDataSet() throws Exception {
-        return new AndroidFilteredDataSet(getConnection().createDataSet());
+        return createFilteredConnectionDataSet(true);
+    }
+
+    /**
+     * @return A data set representing the database's state when called, built from the current
+     * database connection and filtered of metadata tables used by SQLite and Android.
+     *
+     * @param sorted Whether to return a {@link SortedDataSet}.
+     *
+     * @see AndroidFilteredDataSet
+     */
+    protected IDataSet createFilteredConnectionDataSet(boolean sorted) throws Exception {
+        IDataSet dataSet = new AndroidFilteredDataSet(getConnection().createDataSet());
+
+        return sorted ? new SortedDataSet(dataSet) : dataSet;
     }
 
     /**
